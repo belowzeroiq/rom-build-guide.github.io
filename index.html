@@ -1,0 +1,685 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Topaz ROM Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: fixed left rail of sections, one reading column on the right; the rail becomes a scrolling chip bar at phone width. */
+:root {
+  --bg: #f3f6f5;
+  --surface: #e8eeec;
+  --fg: #12211d;
+  --muted: #53665f;
+  --line: #cbd6d2;
+  --accent: #0a7a6b;
+  --accent-fg: #ffffff;
+  --warn-bg: #fbefd3;
+  --warn-fg: #5c3d00;
+  --code-bg: #0f1a17;
+  --code-fg: #d8e8e2;
+  --code-dim: #7f968e;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1311;
+    --surface: #131d1a;
+    --fg: #dde9e5;
+    --muted: #8da29b;
+    --line: #243530;
+    --accent: #3fd9b6;
+    --accent-fg: #06201a;
+    --warn-bg: #2c2410;
+    --warn-fg: #f0d79a;
+    --code-bg: #070d0b;
+    --code-fg: #d3e5de;
+    --code-dim: #6f877f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1311;
+  --surface: #131d1a;
+  --fg: #dde9e5;
+  --muted: #8da29b;
+  --line: #243530;
+  --accent: #3fd9b6;
+  --accent-fg: #06201a;
+  --warn-bg: #2c2410;
+  --warn-fg: #f0d79a;
+  --code-bg: #070d0b;
+  --code-fg: #d3e5de;
+  --code-dim: #6f877f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.65;
+  padding-block: 0 4rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--bg);
+  z-index: 30;
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.shell {
+  max-width: 72rem;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 14.5rem minmax(0, 1fr);
+  gap: 3.5rem;
+}
+
+/* Rail */
+.rail {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  align-self: start;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding-block: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; line-height: 1.15; letter-spacing: -0.01em; }
+.brand small { display: block; font-family: var(--font-mono); font-weight: 400; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.04em; margin-top: 0.4rem; }
+.nav { display: flex; flex-direction: column; gap: 0.1rem; }
+.nav a {
+  display: block;
+  padding: 0.3rem 0.75rem;
+  border-left: 2px solid var(--line);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+.nav a:hover { color: var(--fg); }
+.nav a.on { border-left-color: var(--accent); color: var(--fg); font-weight: 500; }
+.tools { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.btn {
+  font: inherit;
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.progress { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+
+/* Reading column */
+main { min-width: 0; padding-block: 3rem 2rem; max-width: 46rem; }
+.lede h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  margin: 0 0 1rem;
+  text-wrap: balance;
+}
+.lede p { font-size: 1.12rem; color: var(--muted); margin: 0; max-width: 38rem; }
+section { padding-top: 3.25rem; min-width: 0; }
+h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.7rem;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  margin: 0 0 1rem;
+  text-wrap: balance;
+}
+h3 { font-family: var(--font-display); font-weight: 500; font-size: 1.12rem; margin: 2rem 0 0.5rem; }
+p { margin: 0 0 1rem; }
+ul, ol { padding-left: 1.3rem; margin: 0 0 1rem; }
+li { margin-bottom: 0.35rem; }
+code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--surface);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+
+/* Facts list */
+.facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  margin: 1.5rem 0;
+  border-top: 1px solid var(--line);
+}
+.facts dt, .facts dd { margin: 0; padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
+.facts dt { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); padding-right: 2rem; padding-top: 0.75rem; }
+
+/* Code */
+.code { margin: 1rem 0 1.5rem; background: var(--code-bg); border-radius: 6px; overflow: hidden; }
+.code-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.35rem 0.5rem 0.35rem 0.9rem;
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.05em;
+  color: var(--code-dim);
+  border-bottom: 1px solid rgba(127, 150, 142, 0.2);
+}
+.code-bar .btn { color: var(--code-fg); border-color: rgba(127, 150, 142, 0.35); font-size: 0.72rem; padding: 0.15rem 0.5rem; }
+.code-bar .btn:hover { color: #3fd9b6; border-color: #3fd9b6; }
+.code pre { margin: 0; padding: 0.9rem; overflow-x: auto; }
+.code code { background: none; padding: 0; font-size: 0.84rem; line-height: 1.6; color: var(--code-fg); white-space: pre; overflow-wrap: normal; }
+
+/* Callouts */
+.note { background: var(--warn-bg); color: var(--warn-fg); padding: 0.85rem 1rem; margin: 1.25rem 0; border-radius: 4px; font-size: 0.95rem; }
+.note b { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; display: block; margin-bottom: 0.2rem; }
+.note p:last-child { margin-bottom: 0; }
+
+/* Tables */
+.scroll { overflow-x: auto; margin: 1rem 0 1.5rem; }
+table { border-collapse: collapse; width: 100%; min-width: 34rem; font-size: 0.92rem; }
+th, td { text-align: left; vertical-align: top; padding: 0.6rem 0.8rem 0.6rem 0; border-bottom: 1px solid var(--line); }
+th { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+
+/* Checklist */
+.checks { list-style: none; padding: 0; margin: 1rem 0; border-top: 1px solid var(--line); }
+.checks li { margin: 0; border-bottom: 1px solid var(--line); }
+.checks label { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.7rem 0; cursor: pointer; }
+.checks input { margin-top: 0.35rem; accent-color: var(--accent); width: 1.05rem; height: 1.05rem; flex: none; }
+.checks input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+.foot { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem; }
+
+@media (max-width: 52rem) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .rail {
+    position: sticky; top: env(safe-area-inset-top, 0px);
+    max-height: none; overflow: visible;
+    padding-block: 0.6rem; gap: 0.5rem;
+    background: var(--bg); z-index: 20;
+    border-bottom: 1px solid var(--line);
+    flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  }
+  .brand small { display: none; }
+  .brand { font-size: 1.05rem; }
+  .nav { order: 3; flex-direction: row; overflow-x: auto; width: 100%; gap: 0.25rem; padding-bottom: 0.2rem; }
+  .nav a { white-space: nowrap; border-left: 0; border-bottom: 2px solid var(--line); padding: 0.25rem 0.55rem; }
+  .nav a.on { border-bottom-color: var(--accent); }
+  main { padding-top: 2rem; }
+  html { scroll-padding-top: 8rem; }
+  .facts { grid-template-columns: minmax(0, 1fr); }
+  .facts dt { padding-bottom: 0; border-bottom: 0; }
+}
+/* Language switch: every translated block holds an English and an Indonesian span */
+html:not([data-lang="id"]) [lang="id"] { display: none !important; }
+html[data-lang="id"] [lang="en"] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="brand">Topaz ROM Guide<small>Redmi Note 12 4G · topaz / tapas</small></div>
+    <nav class="nav" id="nav" aria-label="Sections">
+      <a href="#overview"><span lang="en">Overview</span><span lang="id">Ikhtisar</span></a>
+      <a href="#route"><span lang="en">Short route</span><span lang="id">Jalur singkat</span></a>
+      <a href="#prep"><span lang="en">Before you start</span><span lang="id">Sebelum mulai</span></a>
+      <a href="#env"><span lang="en">Build server</span><span lang="id">Server build</span></a>
+      <a href="#sync"><span lang="en">Sync sources</span><span lang="id">Sinkronisasi source</span></a>
+      <a href="#tree">Device tree</a>
+      <a href="#blobs"><span lang="en">Vendor blobs</span><span lang="id">Vendor blob</span></a>
+      <a href="#kernel">Kernel</a>
+      <a href="#build">Build</a>
+      <a href="#flash">Flash</a>
+      <a href="#debug"><span lang="en">When it breaks</span><span lang="id">Saat error</span></a>
+      <a href="#release"><span lang="en">Release builds</span><span lang="id">Build rilis</span></a>
+      <a href="#checklist"><span lang="en">Checklist</span><span lang="id">Daftar periksa</span></a>
+    </nav>
+    <div class="tools">
+      <button class="btn" id="lang" type="button" aria-label="Language / Bahasa"><span lang="en">Bahasa Indonesia</span><span lang="id">English</span></button>
+      <button class="btn" id="theme" type="button"><span lang="en">Theme</span><span lang="id">Tema</span></button>
+      <span class="progress" id="progress"></span>
+    </div>
+  </aside>
+
+  <main>
+    <header class="lede">
+      <h1><span lang="en">Build a custom ROM for the Redmi Note 12 4G</span><span lang="id">Buat custom ROM untuk Redmi Note 12 4G</span></h1>
+      <p><span lang="en">A start-to-finish path from a rented build server to a booting LineageOS-based build for the Snapdragon 685 (bengal) devices <code>topaz</code> and <code>tapas</code>: server, sources, device tree, blobs, kernel, flashing and debugging.</span><span lang="id">Panduan dari awal sampai akhir, dari server build sewaan hingga build berbasis LineageOS yang berhasil booting untuk perangkat Snapdragon 685 (bengal) <code>topaz</code> dan <code>tapas</code>: server, source, device tree, blob, kernel, flashing, dan debugging.</span></p>
+    </header>
+
+    <section id="overview">
+      <h2><span lang="en">Overview</span><span lang="id">Ikhtisar</span></h2>
+      <p><span lang="en">Topaz and tapas are the two codenames of the Redmi Note 12 4G. They share one SoC and one kernel, so most ROM projects keep a shared tree and add small per-variant differences. Check which one your phone reports before you start, because blobs and overlays are matched to it.</span><span lang="id">Topaz dan tapas adalah dua codename dari Redmi Note 12 4G. Keduanya memakai SoC dan kernel yang sama, jadi kebanyakan proyek ROM menyimpan satu tree bersama dan menambahkan perbedaan kecil per varian. Periksa dulu varian mana yang dilaporkan ponselmu sebelum mulai, karena blob dan overlay disesuaikan dengannya.</span></p>
+      <dl class="facts">
+        <dt><span lang="en">Codenames</span><span lang="id">Codename</span></dt><dd><code>topaz</code>, <code>tapas</code></dd>
+        <dt>SoC</dt><dd>Qualcomm SM6225 (Snapdragon 685), platform <code>bengal</code></dd>
+        <dt><span lang="en">Stock kernel</span><span lang="id">Kernel bawaan</span></dt><dd><span lang="en">Linux 5.15, GKI line <code>android13-5.15</code></span><span lang="id">Linux 5.15, jalur GKI <code>android13-5.15</code></span></dd>
+        <dt><span lang="en">Shipped with</span><span lang="id">Bawaan pabrik</span></dt><dd><span lang="en">Android 13 (MIUI 14); later builds move to HyperOS</span><span lang="id">Android 13 (MIUI 14); build berikutnya pindah ke HyperOS</span></dd>
+        <dt><span lang="en">Partitions</span><span lang="id">Partisi</span></dt><dd><span lang="en">A/B with dynamic partitions (<code>super</code>). Confirm with <code>fastboot getvar current-slot</code></span><span lang="id">A/B dengan dynamic partition (<code>super</code>). Pastikan dengan <code>fastboot getvar current-slot</code></span></dd>
+        <dt><span lang="en">Your variant</span><span lang="id">Variannya</span></dt><dd><code>adb shell getprop ro.product.device</code></dd>
+      </dl>
+      <p><span lang="en">The sequence is: rent a build server, sync sources, get a device tree and blobs, match the kernel, build, flash, then debug. Expect the debugging step to take longer than every other step together.</span><span lang="id">Urutannya: sewa server build, sinkronkan source, siapkan device tree dan blob, cocokkan kernel, build, flash, lalu debug. Siapkan diri, karena langkah debugging biasanya memakan waktu lebih lama daripada semua langkah lain digabung.</span></p>
+    </section>
+
+    <section id="route">
+      <h2><span lang="en">The short route</span><span lang="id">Jalur singkat</span></h2>
+      <p><span lang="en">This is the workflow the author uses on a rented build server. The sections after it explain each step in more depth, for a first build or when something goes wrong.</span><span lang="id">Ini alur kerja yang dipakai penulis di server build sewaan. Bagian-bagian setelahnya menjelaskan tiap langkah lebih dalam, untuk build pertama atau saat ada masalah.</span></p>
+      <ol>
+        <li><span lang="en"><b>Rent a build server</b> that is already set up for custom ROM building, so you install nothing yourself. The author recommends ServerHive, found on Telegram. It offers low, mid and high core plans.</span><span lang="id"><b>Sewa server build</b> yang sudah disiapkan untuk build custom ROM, jadi kamu tidak perlu menginstal apa pun sendiri. Penulis merekomendasikan ServerHive, yang bisa ditemukan di Telegram. Tersedia paket core rendah, menengah, dan tinggi.</span></li>
+        <li><span lang="en"><b>Log in to the server</b> over SSH. Start a <code>tmux</code> session so a dropped connection does not kill a long build.</span><span lang="id"><b>Login ke server</b> lewat SSH. Mulai sesi <code>tmux</code> agar koneksi yang terputus tidak mematikan build yang panjang.</span>
+          <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>ssh user@your-server
+tmux new -s rom</code></pre></div>
+        </li>
+        <li><span lang="en"><b>Create a Google source password.</b> Sign in at <a href="https://android.googlesource.com" target="_blank" rel="noopener">android.googlesource.com</a>, click Generate password, copy the command it shows, and paste it into the server's terminal. It saves your credentials so syncing is not rate limited.</span><span lang="id"><b>Buat password Google source.</b> Login di <a href="https://android.googlesource.com" target="_blank" rel="noopener">android.googlesource.com</a>, klik Generate password, salin perintah yang muncul, lalu tempel ke terminal server. Perintah ini menyimpan kredensialmu sehingga sinkronisasi tidak terkena rate limit.</span></li>
+        <li><span lang="en"><b>Set your git name and email.</b></span><span lang="id"><b>Atur nama dan email git.</b></span>
+          <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>git config --global user.name  "Your Name"
+git config --global user.email "you@example.com"</code></pre></div>
+        </li>
+        <li><span lang="en"><b>Pick an AOSP-based ROM source.</b> For example LineageOS. Open its repository and find the <code>repo init</code> line for your branch.</span><span lang="id"><b>Pilih source ROM berbasis AOSP.</b> Misalnya LineageOS. Buka repositorinya dan cari baris <code>repo init</code> untuk branch-mu.</span></li>
+        <li><span lang="en"><b>Run <code>repo init</code> with the ROM's own command, and add <code>--depth=1</code></b> for a shallow clone that saves space.</span><span lang="id"><b>Jalankan <code>repo init</code> dengan perintah dari ROM tersebut, lalu tambahkan <code>--depth=1</code></b> untuk shallow clone yang menghemat ruang.</span>
+          <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>mkdir -p ~/android/lineage &amp;&amp; cd ~/android/lineage
+repo init -u https://github.com/LineageOS/android.git -b lineage-23.0 --git-lfs --depth=1</code></pre></div>
+        </li>
+        <li><span lang="en"><b>Clone your local manifest</b> into <code>.repo/local_manifests</code>. It lists your device, vendor and kernel trees.</span><span lang="id"><b>Clone local manifest-mu</b> ke <code>.repo/local_manifests</code>. Isinya daftar tree device, vendor, dan kernel.</span>
+          <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>git clone https://github.com/YOUR_ORG/local_manifests -b BRANCH .repo/local_manifests</code></pre></div>
+        </li>
+        <li><span lang="en"><b>Sync</b> with the command the ROM's manifest page gives. A typical one:</span><span lang="id"><b>Sync</b> dengan perintah dari halaman manifest ROM. Contoh umumnya:</span>
+          <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>repo sync -c --no-tags --no-clone-bundle -j$(nproc --all) --force-sync</code></pre></div>
+        </li>
+        <li><span lang="en"><b>Generate private keys</b> in <code>vendor/lineage-priv/keys</code> with <code>./keys.sh</code>. Keep that folder out of git and back it up. If you lose it, or change keys later, users must wipe data to update.</span><span lang="id"><b>Buat private key</b> di <code>vendor/lineage-priv/keys</code> dengan <code>./keys.sh</code>. Jangan masukkan folder itu ke git dan simpan cadangannya. Jika hilang, atau key diganti nanti, pengguna harus wipe data untuk update.</span>
+          <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>cd vendor/lineage-priv/keys
+./keys.sh
+cd ~/android/lineage</code></pre></div>
+        </li>
+        <li><span lang="en"><b>Load the build environment.</b></span><span lang="id"><b>Muat environment build.</b></span>
+          <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>. build/envsetup.sh</code></pre></div>
+        </li>
+        <li><span lang="en"><b>Choose the target</b> with <code>lunch</code>, <code>breakfast</code> or <code>brunch</code>. LineageOS uses <code>lunch</code> in this flow, and the release part of the name depends on the branch.</span><span lang="id"><b>Pilih target</b> dengan <code>lunch</code>, <code>breakfast</code>, atau <code>brunch</code>. LineageOS memakai <code>lunch</code> pada alur ini, dan bagian rilis pada namanya bergantung pada branch.</span>
+          <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>lunch lineage_topaz-bp2a-userdebug</code></pre></div>
+        </li>
+        <li><span lang="en"><b>Build the flashable zip.</b></span><span lang="id"><b>Build zip yang siap di-flash.</b></span>
+          <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>mka bacon -j$(nproc --all)</code></pre></div>
+        </li>
+        <li><span lang="en"><b>Wait for the build to finish.</b> The zip lands in <code>out/target/product/topaz/</code>.</span><span lang="id"><b>Tunggu build selesai.</b> Zip-nya ada di <code>out/target/product/topaz/</code>.</span></li>
+        <li><span lang="en"><b>Flash.</b> See the flashing section for the recovery and sideload steps.</span><span lang="id"><b>Flash.</b> Lihat bagian flashing untuk langkah recovery dan sideload.</span></li>
+      </ol>
+      <div class="note"><span lang="en"><b>Shallow clones have limits</b>With <code>--depth=1</code> you get no commit history. You can build normally, but <code>git log</code>, <code>git blame</code> and cherry-picking older commits will not work until you fetch more history in the repository you need.</span><span lang="id"><b>Shallow clone punya batasan</b>Dengan <code>--depth=1</code> kamu tidak mendapat riwayat commit. Build tetap berjalan normal, tetapi <code>git log</code>, <code>git blame</code>, dan cherry-pick commit lama tidak akan berfungsi sampai kamu mengambil riwayat lebih banyak di repositori yang dibutuhkan.</span></div>
+    </section>
+
+    <section id="prep">
+      <h2><span lang="en">Before you start</span><span lang="id">Sebelum mulai</span></h2>
+      <ul>
+        <li><span lang="en"><b>A rented build server.</b> A server already set up for custom ROM building, such as ServerHive, supplies the disk, memory and tools. Pick a plan by core count (see the build server section).</span><span lang="id"><b>Server build sewaan.</b> Server yang sudah disiapkan untuk build custom ROM, seperti ServerHive, menyediakan disk, memori, dan tool-nya. Pilih paket berdasarkan jumlah core (lihat bagian server build).</span></li>
+        <li><span lang="en"><b>A second way to get help.</b> Keep a copy of the stock fastboot ROM for your region. It is the way back from a bad flash.</span><span lang="id"><b>Jalan pulang cadangan.</b> Simpan salinan stock fastboot ROM untuk regionmu. Ini jalan kembali jika flash gagal.</span></li>
+        <li><span lang="en"><b>An unlocked bootloader.</b> This guide assumes your phone's bootloader is already unlocked, because flashing needs it. Back up your data first, since flashing a ROM wipes it.</span><span lang="id"><b>Bootloader yang sudah terbuka.</b> Panduan ini mengasumsikan bootloader ponselmu sudah di-unlock, karena flashing membutuhkannya. Cadangkan datamu terlebih dulu, karena flash ROM akan menghapusnya.</span></li>
+        <li><span lang="en"><b>Know your branch.</b> Pick the Android version first (for example LineageOS 23.0 for Android 16). Device tree, vendor blobs and kernel must all target the same one.</span><span lang="id"><b>Tentukan branch-mu.</b> Pilih versi Android lebih dulu (misalnya LineageOS 23.0 untuk Android 16). Device tree, vendor blob, dan kernel semuanya harus menargetkan versi yang sama.</span></li>
+      </ul>
+      <div class="note"><span lang="en"><b>Heads up</b>Flashing can brick a phone. Never flash partitions you cannot name, and never flash a firmware package built for a different codename.</span><span lang="id"><b>Perhatian</b>Flashing bisa membuat ponsel brick. Jangan pernah flash partisi yang tidak kamu kenali namanya, dan jangan flash paket firmware yang dibuat untuk codename lain.</span></div>
+    </section>
+
+    <section id="env">
+      <h2><span lang="en">Use a rented build server</span><span lang="id">Pakai server build sewaan</span></h2>
+      <p><span lang="en">Skip building your own machine. Rent a server that is already set up for custom ROM building, with the packages, the <code>repo</code> tool and ccache in place. ServerHive is one such service, and it offers low, mid and high core plans.</span><span lang="id">Lewati urusan membangun mesin sendiri. Sewa server yang sudah disiapkan untuk build custom ROM, lengkap dengan paket, tool <code>repo</code>, dan ccache. ServerHive adalah salah satu layanannya, dengan paket core rendah, menengah, dan tinggi.</span></p>
+      <h3><span lang="en">Choosing a plan</span><span lang="id">Memilih paket</span></h3>
+      <p><span lang="en">More cores shorten the first full build the most. Later builds are much quicker on any plan once ccache is warm, so a lower plan can be enough if you keep rebuilding the same device. If you build several ROMs or branches, a higher plan pays off sooner.</span><span lang="id">Core yang lebih banyak mempercepat build penuh pertama paling besar. Build berikutnya jauh lebih cepat di paket mana pun begitu ccache terisi, jadi paket yang lebih rendah bisa cukup jika kamu sering membangun ulang device yang sama. Jika kamu membangun beberapa ROM atau branch, paket yang lebih tinggi lebih cepat terasa manfaatnya.</span></p>
+      <h3><span lang="en">Log in</span><span lang="id">Login</span></h3>
+      <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>ssh user@your-server
+tmux new -s rom</code></pre></div>
+      <p><span lang="en">Run syncs and builds inside <code>tmux</code> or <code>screen</code>. If your connection drops, the job keeps running and you can reattach with <code>tmux attach -t rom</code>.</span><span lang="id">Jalankan sync dan build di dalam <code>tmux</code> atau <code>screen</code>. Jika koneksimu terputus, pekerjaan tetap berjalan dan kamu bisa menyambung lagi dengan <code>tmux attach -t rom</code>.</span></p>
+      <h3><span lang="en">Set up your accounts</span><span lang="id">Siapkan akunmu</span></h3>
+      <p><span lang="en">These two steps belong to you, so even a ready-made server cannot do them for you.</span><span lang="id">Dua langkah ini milikmu sendiri, jadi server yang sudah siap pakai pun tidak bisa mengerjakannya untukmu.</span></p>
+      <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>git config --global user.name  "Your Name"
+git config --global user.email "you@example.com"</code></pre></div>
+      <p><span lang="en">Then sign in at <a href="https://android.googlesource.com" target="_blank" rel="noopener">android.googlesource.com</a>, click Generate password, and paste the command it shows into the server's terminal. Do this before the first sync, because unauthenticated syncs from Google's servers get rate limited.</span><span lang="id">Lalu login di <a href="https://android.googlesource.com" target="_blank" rel="noopener">android.googlesource.com</a>, klik Generate password, dan tempel perintah yang muncul ke terminal server. Lakukan ini sebelum sync pertama, karena sync tanpa autentikasi dari server Google terkena rate limit.</span></p>
+    </section>
+
+    <section id="sync">
+      <h2><span lang="en">Sync the sources</span><span lang="id">Sinkronkan source</span></h2>
+      <p><span lang="en">Initialize the LineageOS manifest for your branch, then add your device repositories through a local manifest so they survive every <code>repo sync</code>.</span><span lang="id">Inisialisasi manifest LineageOS untuk branch-mu, lalu tambahkan repositori device lewat local manifest agar tetap ada setiap kali <code>repo sync</code>.</span></p>
+      <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>cd ~/android/lineage
+repo init -u https://github.com/LineageOS/android.git -b lineage-23.0 --git-lfs --depth=1
+# Replace lineage-23.0 with the branch you chose.
+# --depth=1 keeps only the newest commit of each repository to save disk space.</code></pre></div>
+      <p><span lang="en">Drop <code>--depth=1</code> if you plan to browse history or cherry-pick older commits.</span><span lang="id">Hapus <code>--depth=1</code> jika kamu berencana melihat riwayat atau cherry-pick commit lama.</span></p>
+      <h3><span lang="en">Local manifest</span><span lang="id">Local manifest</span></h3>
+      <p><span lang="en">Put your device, vendor, kernel, hardware and SELinux repositories in a local manifest at <code>.repo/local_manifests/</code>, so they survive every <code>repo sync</code>. You can write it as a file there, or keep it in its own git repository and clone it into that folder (see the short route). This is a working example for the SM6225 devices on Android 16:</span><span lang="id">Taruh repositori device, vendor, kernel, hardware, dan SELinux-mu dalam local manifest di <code>.repo/local_manifests/</code> agar tetap ada setiap kali <code>repo sync</code>. Kamu bisa menulisnya sebagai file di sana, atau menyimpannya di repositori git sendiri lalu meng-clone-nya ke folder itu (lihat jalur singkat). Ini contoh yang berjalan untuk perangkat SM6225 di Android 16:</span></p>
+      <div class="code"><div class="code-bar"><span>.repo/local_manifests/topaz.xml</span><button class="btn copy" type="button">Copy</button></div><pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;manifest&gt;
+
+&lt;remote name="tnf" fetch="https://github.com/topnotchfreaks" /&gt;
+&lt;remote name="SM6225-Playground" fetch="https://github.com/SM6225-Android-Playground" /&gt;
+    
+&lt;!-- Device Sources --&gt;
+&lt;project name="android_device_xiaomi_tapas" path="device/xiaomi/tapas" remote="SM6225-Playground" revision="16" /&gt;
+&lt;project name="proprietary_vendor_xiaomi_tapas" path="vendor/xiaomi/tapas" remote="SM6225-Playground" revision="16" /&gt;
+&lt;project name="android_device_xiaomi_tapas-kernel" path="device/xiaomi/tapas-kernel" remote="SM6225-Playground" revision="16-gki" /&gt;
+
+
+&lt;!-- LOS Hardware Stuff --&gt;
+&lt;project name="android_hardware_xiaomi" path="hardware/xiaomi" remote="tnf" revision="lineage-23.2" /&gt;
+&lt;remove-project path="hardware/qcom-caf/common" /&gt;
+&lt;project path="hardware/qcom-caf/common" name="hardware_qcom-caf_common" groups="qcom" remote="tnf" revision="16" &gt;
+    &lt;!-- add guard for AOSP hardware/qcom dir --&gt;
+    &lt;linkfile src="os_pickup_aosp.mk" dest="hardware/qcom/Android.mk" /&gt;
+    &lt;!-- add guards for CAF repositories --&gt;
+    &lt;linkfile src="os_pickup_sepolicy_vndr.mk" dest="device/qcom/sepolicy_vndr/SEPolicy.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/msm8953/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup.mk" dest="hardware/qcom-caf/msm8953/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup.bp" dest="hardware/qcom-caf/msm8996/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup.mk" dest="hardware/qcom-caf/msm8996/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup.bp" dest="hardware/qcom-caf/msm8998/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup.mk" dest="hardware/qcom-caf/msm8998/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sdm660/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup.mk" dest="hardware/qcom-caf/sdm660/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sdm845/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup.mk" dest="hardware/qcom-caf/sdm845/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sm8150/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup.mk" dest="hardware/qcom-caf/sm8150/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sm8250/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup.mk" dest="hardware/qcom-caf/sm8250/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sm8350/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup_audio-ar.mk" dest="hardware/qcom-caf/sm8450/audio/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sm8450/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup_audio-ar.mk" dest="hardware/qcom-caf/sm8450-6.6/audio/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sm8450-6.6//Android.bp" /&gt;
+    &lt;linkfile src="os_pickup_audio-ar.mk" dest="hardware/qcom-caf/sm8550/audio/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sm8550/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup_audio-ar.mk" dest="hardware/qcom-caf/sm8650/audio/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sm8650/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup.mk" dest="hardware/qcom-caf/sm8650/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sm8750/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup.mk" dest="hardware/qcom-caf/sm8750/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sm8850/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup.mk" dest="hardware/qcom-caf/sm8850/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_audio-ar.mk" dest="hardware/qcom-caf/sm6225/audio/Android.mk" /&gt;
+    &lt;linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sm6225/Android.bp" /&gt;
+    &lt;linkfile src="os_pickup.mk" dest="hardware/qcom-caf/sm6225/Android.mk" /&gt;
+  &lt;/project&gt;
+
+&lt;!-- SE-Policy Stuff --&gt;
+&lt;project name="device_xiaomi_sepolicy" path="device/xiaomi/sepolicy" remote="tnf" revision="16" /&gt;
+&lt;project name="android_device_qcom_sepolicy_vndr_sm6225" path="device/qcom/sepolicy_vndr/sm6225" remote="tnf" revision="16.2" /&gt;
+
+&lt;!-- HALS --&gt;
+&lt;project path="hardware/qcom-caf/sm6225/audio/agm" name="android_hardware_qcom-caf_sm6225_audio_agm" remote="tnf" revision="16.2" /&gt;
+&lt;project path="hardware/qcom-caf/sm6225/audio/pal" name="android_hardware_qcom-caf_sm6225_audio_pal" remote="tnf" revision="16.2" /&gt;
+&lt;project path="hardware/qcom-caf/sm6225/audio/primary-hal" name="android_hardware_qcom-caf_sm6225_audio_primary-hal" remote="tnf" revision="16.2" /&gt;
+&lt;project path="hardware/qcom-caf/sm6225/dataipa" name="android_hardware_qcom-caf_sm6225_dataipa" remote="tnf" revision="16.2" /&gt;
+&lt;project path="hardware/qcom-caf/sm6225/data-ipa-cfg-mgr" name="android_hardware_qcom-caf_sm6225_data-ipa-cfg-mgr" remote="tnf" revision="16.2" /&gt;
+&lt;project path="hardware/qcom-caf/sm6225/display" name="android_hardware_qcom-caf_sm6225_display" remote="tnf" revision="16.2" /&gt;
+&lt;project path="hardware/qcom-caf/sm6225/media" name="android_hardware_qcom-caf_sm6225_media" remote="tnf" revision="16.2" /&gt;
+
+&lt;!-- Lineage Priv Keys --&gt;
+&lt;project name="android_vendor_lineage-priv_keys" path="vendor/lineage-priv/keys" remote="tnf" revision="lineage-23.2" /&gt;
+    
+&lt;/manifest&gt;</code></pre></div>
+      <h3><span lang="en">What each group does</span><span lang="id">Fungsi tiap grup</span></h3>
+      <ul>
+        <li><span lang="en"><b>Remotes.</b> <code>tnf</code> points at the topnotchfreaks GitHub account and <code>SM6225-Playground</code> at the SM6225-Android-Playground organization. Each <code>project</code> names the remote it comes from.</span><span lang="id"><b>Remote.</b> <code>tnf</code> menunjuk ke akun GitHub topnotchfreaks dan <code>SM6225-Playground</code> ke organisasi SM6225-Android-Playground. Setiap <code>project</code> menyebut remote asalnya.</span></li>
+        <li><span lang="en"><b>Device sources.</b> The device tree, the proprietary vendor tree with the blobs, and a separate kernel tree, checked out under <code>device/xiaomi</code> and <code>vendor/xiaomi</code>. The kernel project uses the <code>16-gki</code> branch.</span><span lang="id"><b>Device source.</b> Device tree, vendor tree proprietary yang berisi blob, dan kernel tree terpisah, di-checkout di bawah <code>device/xiaomi</code> dan <code>vendor/xiaomi</code>. Proyek kernel memakai branch <code>16-gki</code>.</span></li>
+        <li><span lang="en"><b>Hardware.</b> <code>hardware/xiaomi</code> from the Lineage 23.2 line. The <code>remove-project</code> line drops the stock <code>hardware/qcom-caf/common</code>, and the next project puts a fork there. The <code>linkfile</code> entries create guard makefiles so other platforms' CAF directories do not build by accident, and add the <code>sm6225</code> paths.</span><span lang="id"><b>Hardware.</b> <code>hardware/xiaomi</code> dari jalur Lineage 23.2. Baris <code>remove-project</code> membuang <code>hardware/qcom-caf/common</code> bawaan, lalu proyek berikutnya menaruh fork di tempatnya. Entri <code>linkfile</code> membuat makefile pengaman agar direktori CAF platform lain tidak ikut ter-build secara tidak sengaja, sekaligus menambahkan path <code>sm6225</code>.</span></li>
+        <li><span lang="en"><b>SELinux.</b> The shared Xiaomi policy and the SM6225 vendor policy from Qualcomm.</span><span lang="id"><b>SELinux.</b> Policy Xiaomi bersama dan policy vendor SM6225 dari Qualcomm.</span></li>
+        <li><span lang="en"><b>HALs.</b> The SM6225 audio stack (agm, pal, primary-hal), data IPA, display and media, all under <code>hardware/qcom-caf/sm6225</code>.</span><span lang="id"><b>HAL.</b> Stack audio SM6225 (agm, pal, primary-hal), data IPA, display, dan media, semuanya di bawah <code>hardware/qcom-caf/sm6225</code>.</span></li>
+        <li><span lang="en"><b>Keys.</b> The last project checks out <code>vendor/lineage-priv/keys</code>, which is where <code>./keys.sh</code> runs in the short route.</span><span lang="id"><b>Key.</b> Proyek terakhir men-checkout <code>vendor/lineage-priv/keys</code>, tempat <code>./keys.sh</code> dijalankan pada jalur singkat.</span></li>
+      </ul>
+      <div class="note"><span lang="en"><b>Match the branches</b>The groups use different branches (<code>16</code>, <code>16-gki</code>, <code>16.2</code> and <code>lineage-23.2</code>). Each one has to match the Android version of the ROM branch you initialized. If you move to a new ROM branch, check every <code>revision</code> before you sync.</span><span lang="id"><b>Samakan branch</b>Tiap grup memakai branch berbeda (<code>16</code>, <code>16-gki</code>, <code>16.2</code>, dan <code>lineage-23.2</code>). Masing-masing harus cocok dengan versi Android dari branch ROM yang kamu init. Jika pindah ke branch ROM baru, periksa setiap <code>revision</code> sebelum sync.</span></div>
+      <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>repo sync -c --no-tags --no-clone-bundle -j8 --force-sync</code></pre></div>
+      <p><span lang="en">The <code>-c</code> flag fetches only the branch you need and saves a lot of disk and time. If you only ever build bengal devices, you can also trim the main <code>default.xml</code> to drop repositories for hardware you will never build, but do that only after a full build works.</span><span lang="id">Flag <code>-c</code> hanya mengambil branch yang kamu butuhkan dan menghemat banyak disk serta waktu. Jika kamu hanya membangun perangkat bengal, kamu juga bisa memangkas <code>default.xml</code> utama untuk membuang repositori hardware yang tidak akan kamu build, tetapi lakukan itu hanya setelah build penuh berhasil.</span></p>
+    </section>
+
+    <section id="tree">
+      <h2><span lang="en">The device tree</span><span lang="id">Device tree</span></h2>
+      <p><span lang="en">If you are porting, start from a working tree for the same SoC and the same Android generation, then move it forward one change at a time. Moving across two Android versions in one step is how trees end up with a hundred errors and no clue where they started.</span><span lang="id">Jika kamu melakukan porting, mulailah dari tree yang sudah berjalan untuk SoC dan generasi Android yang sama, lalu majukan satu perubahan demi satu perubahan. Melompati dua versi Android sekaligus adalah cara tree berakhir dengan seratus error tanpa petunjuk dari mana semuanya bermula.</span></p>
+      <div class="scroll"><table>
+        <thead><tr><th><span lang="en">File</span><span lang="id">File</span></th><th><span lang="en">What it controls</span><span lang="id">Fungsinya</span></th></tr></thead>
+        <tbody>
+          <tr><td><code>AndroidProducts.mk</code></td><td><span lang="en">Lists the product makefiles, so <code>breakfast topaz</code> can find the build.</span><span lang="id">Mendaftarkan makefile produk, sehingga <code>breakfast topaz</code> bisa menemukan build.</span></td></tr>
+          <tr><td><code>lineage_topaz.mk</code></td><td><span lang="en">Product name, branding and the top-level package list. Every module named here must exist in the tree.</span><span lang="id">Nama produk, branding, dan daftar paket tingkat atas. Setiap modul yang disebut di sini harus ada di tree.</span></td></tr>
+          <tr><td><code>device.mk</code></td><td><span lang="en">Packages, HALs, properties and overlays shared by variants.</span><span lang="id">Paket, HAL, properti, dan overlay yang dipakai bersama oleh varian.</span></td></tr>
+          <tr><td><code>BoardConfig.mk</code></td><td><span lang="en">Partition sizes, kernel and boot image settings, sepolicy dirs, VINTF manifests.</span><span lang="id">Ukuran partisi, pengaturan kernel dan boot image, direktori sepolicy, manifest VINTF.</span></td></tr>
+          <tr><td><span lang="en"><code>extract-files.py</code> and <code>proprietary-files.txt</code></span><span lang="id"><code>extract-files.py</code> dan <code>proprietary-files.txt</code></span></td><td><span lang="en">Which blobs to pull from stock, and any patching they need.</span><span lang="id">Blob mana yang diambil dari stock, dan patch apa yang dibutuhkan.</span></td></tr>
+          <tr><td><code>sepolicy/</code></td><td><span lang="en">SELinux rules for your HALs and vendor services.</span><span lang="id">Aturan SELinux untuk HAL dan layanan vendor-mu.</span></td></tr>
+          <tr><td><code>overlay/</code></td><td><span lang="en">Resource overlays (RROs) for framework and app values.</span><span lang="id">Resource overlay (RRO) untuk nilai framework dan aplikasi.</span></td></tr>
+          <tr><td><span lang="en"><code>configs/</code> and <code>powerhint.*</code></span><span lang="id"><code>configs/</code> dan <code>powerhint.*</code></span></td><td><span lang="en">Audio, sensors, permissions, and power profiles.</span><span lang="id">Audio, sensor, permission, dan profil daya.</span></td></tr>
+        </tbody>
+      </table></div>
+      <h3><span lang="en">Pick one PowerHAL</span><span lang="id">Pilih satu PowerHAL</span></h3>
+      <p><span lang="en">Older trees ship the QTI performance HAL with <code>powerhint.xml</code>. Newer ones use the AOSP <code>libperfmgr</code> PowerHAL with <code>powerhint.json</code>. Choose one. If both are present, two services write to the same GPU frequency files at runtime and the phone gets unpredictable. When you switch, remove the old HAL's blobs from the vendor tree too.</span><span lang="id">Tree lama membawa HAL performa QTI dengan <code>powerhint.xml</code>. Yang lebih baru memakai PowerHAL AOSP <code>libperfmgr</code> dengan <code>powerhint.json</code>. Pilih salah satu. Jika keduanya ada, dua layanan menulis ke file frekuensi GPU yang sama saat runtime dan perilaku ponsel jadi tidak bisa ditebak. Saat berpindah, hapus juga blob HAL lama dari vendor tree.</span></p>
+      <h3><span lang="en">Pure AOSP on a Lineage tree</span><span lang="id">AOSP murni di atas Lineage tree</span></h3>
+      <p><span lang="en">Lineage device trees depend on Lineage-only pieces such as <code>vendor/lineage</code> inherits and the <code>lineage_</code> product prefix. To build plain AOSP, rename the product file, replace the Lineage inherits in <code>device.mk</code>, edit <code>AndroidProducts.mk</code> to match, and remove any module that only exists in Lineage repositories.</span><span lang="id">Device tree Lineage bergantung pada bagian khusus Lineage seperti inherit <code>vendor/lineage</code> dan prefiks produk <code>lineage_</code>. Untuk membangun AOSP murni, ganti nama file produk, ganti inherit Lineage di <code>device.mk</code>, sesuaikan <code>AndroidProducts.mk</code>, dan buang modul yang hanya ada di repositori Lineage.</span></p>
+    </section>
+
+    <section id="blobs">
+      <h2><span lang="en">Vendor blobs</span><span lang="id">Vendor blob</span></h2>
+      <p><span lang="en">The camera, modem, Wi-Fi, audio and GPU stacks need Xiaomi's closed-source files. The example manifest already checks out a vendor tree that contains them, so you only need to extract when you refresh or add blobs. Extract from a stock ROM that matches the firmware on the phone.</span><span lang="id">Stack kamera, modem, Wi-Fi, audio, dan GPU membutuhkan file closed-source dari Xiaomi. Manifest contoh sudah men-checkout vendor tree yang berisi file-file itu, jadi kamu hanya perlu mengekstrak saat memperbarui atau menambah blob. Ekstrak dari stock ROM yang cocok dengan firmware di ponsel.</span></p>
+      <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>cd ~/android/lineage/device/xiaomi/topaz
+./extract-files.py --only-target ~/stock_dump
+# or pull straight from a phone running the matching stock ROM:
+./extract-files.py</code></pre></div>
+      <div class="note"><span lang="en"><b>Do not mix generations</b>Take every blob in one stack from the same stock build. A Wi-Fi service built against one firmware generation and a library from another can pass the build and then crash at boot with a control-flow-integrity abort, because the two libraries disagree about their interface.</span><span lang="id"><b>Jangan campur generasi</b>Ambil setiap blob dalam satu stack dari build stock yang sama. Layanan Wi-Fi yang dibangun terhadap satu generasi firmware dan library dari generasi lain bisa lolos build lalu crash saat boot dengan abort control-flow-integrity, karena kedua library tidak sepakat soal interface-nya.</span></div>
+      <p><span lang="en">When the build complains about a missing library, add it to <code>proprietary-files.txt</code>, re-run extraction, and commit the result to the vendor tree. Do not hand-copy files into <code>vendor/</code>, since the next sync or clean build will lose them.</span><span lang="id">Jika build mengeluh ada library yang hilang, tambahkan ke <code>proprietary-files.txt</code>, jalankan ulang ekstraksi, lalu commit hasilnya ke vendor tree. Jangan menyalin file ke <code>vendor/</code> dengan tangan, karena sync berikutnya atau clean build akan menghilangkannya.</span></p>
+    </section>
+
+    <section id="kernel">
+      <h2>Kernel</h2>
+      <p><span lang="en">Stock runs a GKI 5.15 kernel with vendor modules loaded on top. The kernel image and the modules must agree on the same kernel module interface (KMI), so you have two safe choices.</span><span lang="id">Stock menjalankan kernel GKI 5.15 dengan modul vendor dimuat di atasnya. Image kernel dan modul harus sepakat pada kernel module interface (KMI) yang sama, jadi ada dua pilihan aman.</span></p>
+      <ul>
+        <li><span lang="en"><b>Use the prebuilt kernel and modules.</b> The fastest way to a first boot. Ship the kernel image, then the <code>.ko</code> files into the ramdisk or vendor partitions where the board config expects them.</span><span lang="id"><b>Pakai kernel dan modul prebuilt.</b> Cara tercepat menuju boot pertama. Masukkan image kernel, lalu file <code>.ko</code> ke ramdisk atau partisi vendor sesuai yang diharapkan board config.</span></li>
+        <li><span lang="en"><b>Build the kernel and modules from source.</b> Required for custom features. Build the GKI image and every vendor module from the same checkout, with the same toolchain and config.</span><span lang="id"><b>Build kernel dan modul dari source.</b> Diperlukan untuk fitur kustom. Build image GKI dan setiap modul vendor dari checkout yang sama, dengan toolchain dan config yang sama.</span></li>
+      </ul>
+      <p><span lang="en">If you move a device tree between GKI generations (for example from the 6.12 line back to 5.15), expect to revisit <code>BoardConfig.mk</code> kernel settings and rebuild every out-of-tree module. Blobs built for the newer line often refuse to work on the older kernel, so check that before you commit to a rollback.</span><span lang="id">Jika kamu memindahkan device tree antar generasi GKI (misalnya dari jalur 6.12 kembali ke 5.15), bersiaplah meninjau ulang pengaturan kernel di <code>BoardConfig.mk</code> dan membangun ulang setiap modul out-of-tree. Blob yang dibuat untuk jalur lebih baru sering menolak bekerja di kernel yang lebih lama, jadi periksa dulu sebelum memutuskan rollback.</span></p>
+      <div class="code"><div class="code-bar"><span>VERIFY ON DEVICE</span><button class="btn copy" type="button">Copy</button></div><pre><code>adb shell uname -r
+adb shell lsmod | head -30
+adb shell dmesg | grep -i -E "disagrees about version|Unknown symbol|module verification"</code></pre></div>
+      <p><span lang="en">The version-disagreement lines in that last command are the clearest sign that a module was built against the wrong kernel.</span><span lang="id">Baris yang menyebut ketidakcocokan versi pada perintah terakhir itu adalah tanda paling jelas bahwa modul dibangun terhadap kernel yang salah.</span></p>
+    </section>
+
+    <section id="build">
+      <h2>Build</h2>
+      <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>cd ~/android/lineage
+source build/envsetup.sh
+breakfast topaz          # picks the right lunch target for this branch
+croot
+brunch topaz             # builds and packages the flashable zip
+
+# The same thing in separate steps:
+lunch lineage_topaz-bp2a-userdebug   # release part of the name depends on the branch
+mka bacon -j$(nproc --all)</code></pre></div>
+      <p><span lang="en">The commands here use <code>topaz</code> as the product name. The example manifest checks the device tree out as <code>device/xiaomi/tapas</code>, so use the product name your tree defines in <code>AndroidProducts.mk</code> (for example <code>lineage_tapas</code> or <code>lineage_topaz</code>), and swap it into the <code>out/target/product/</code> path as well.</span><span lang="id">Perintah di sini memakai <code>topaz</code> sebagai nama produk. Manifest contoh men-checkout device tree sebagai <code>device/xiaomi/tapas</code>, jadi pakai nama produk yang didefinisikan tree-mu di <code>AndroidProducts.mk</code> (misalnya <code>lineage_tapas</code> atau <code>lineage_topaz</code>), dan ganti juga pada path <code>out/target/product/</code>.</span></p>
+      <p><span lang="en">The result lands in <code>out/target/product/topaz/</code>: the OTA zip, <code>boot.img</code>, <code>vendor_boot.img</code> and, when your tree builds one, a recovery image. For quicker iteration, build only what changed, for example <code>mka bootimage</code> or <code>mka vendorbootimage</code>.</span><span lang="id">Hasilnya ada di <code>out/target/product/topaz/</code>: zip OTA, <code>boot.img</code>, <code>vendor_boot.img</code>, dan, jika tree-mu membuatnya, image recovery. Untuk iterasi lebih cepat, build hanya yang berubah, misalnya <code>mka bootimage</code> atau <code>mka vendorbootimage</code>.</span></p>
+      <p><span lang="en">The first full build takes hours. Later builds finish in a fraction of that when ccache is warm. If the server runs out of memory and the build dies without an error, lower the job count with <code>-j</code> or ask your provider about a bigger plan.</span><span lang="id">Build penuh pertama memakan waktu berjam-jam. Build berikutnya selesai dalam sebagian kecil waktu itu saat ccache sudah terisi. Jika server kehabisan memori dan build mati tanpa pesan error, kurangi jumlah job dengan <code>-j</code> atau tanyakan ke penyedia soal paket yang lebih besar.</span></p>
+    </section>
+
+    <section id="flash">
+      <h2>Flash</h2>
+      <div class="note"><span lang="en"><b>Check your build first</b>Where recovery lives (<code>boot</code> or <code>vendor_boot</code>) depends on how your tree sets it up. Look at which image the build produced and flash that partition, not the one in someone else's guide.</span><span lang="id"><b>Periksa build-mu dulu</b>Lokasi recovery (<code>boot</code> atau <code>vendor_boot</code>) bergantung pada cara tree-mu mengaturnya. Lihat image mana yang dihasilkan build dan flash partisi itu, bukan yang ada di panduan orang lain.</span></div>
+      <ol>
+        <li><span lang="en">Reboot to fastboot and flash the recovery image from <code>out/target/product/topaz/</code>.</span><span lang="id">Reboot ke fastboot dan flash image recovery dari <code>out/target/product/topaz/</code>.</span></li>
+        <li><span lang="en">Boot into recovery from the same menu and choose Apply update, then Apply from ADB.</span><span lang="id">Masuk ke recovery dari menu yang sama lalu pilih Apply update, kemudian Apply from ADB.</span></li>
+        <li><span lang="en">Sideload the ROM zip from the PC.</span><span lang="id">Sideload zip ROM dari PC.</span></li>
+        <li><span lang="en">Choose Factory reset, Format data when moving from stock or from a different ROM.</span><span lang="id">Pilih Factory reset, Format data saat berpindah dari stock atau dari ROM lain.</span></li>
+        <li><span lang="en">Reboot to system.</span><span lang="id">Reboot ke system.</span></li>
+      </ol>
+      <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>adb reboot bootloader
+fastboot flash vendor_boot out/target/product/topaz/vendor_boot.img   # or: boot
+fastboot reboot recovery
+# in recovery: Apply update &gt; Apply from ADB, then on the PC:
+adb sideload out/target/product/topaz/lineage-*-topaz.zip</code></pre></div>
+      <p><span lang="en">To test a kernel or boot image without writing it, use <code>fastboot boot image.img</code>. A rejected image costs you nothing and leaves the installed system intact.</span><span lang="id">Untuk menguji kernel atau boot image tanpa menulisnya, pakai <code>fastboot boot image.img</code>. Image yang ditolak tidak merugikanmu dan sistem yang terpasang tetap utuh.</span></p>
+    </section>
+
+    <section id="debug">
+      <h2><span lang="en">When it breaks</span><span lang="id">Saat error</span></h2>
+      <h3><span lang="en">Collecting evidence</span><span lang="id">Mengumpulkan bukti</span></h3>
+      <div class="code"><div class="code-bar"><span>SHELL</span><button class="btn copy" type="button">Copy</button></div><pre><code>adb logcat -b all -d &gt; logcat.txt
+adb shell dmesg &gt; dmesg.txt
+adb shell cat /sys/fs/pstore/console-ramoops-0     # after a crash and reboot
+adb logcat -d | grep "avc:"                        # SELinux denials</code></pre></div>
+      <p><span lang="en">A phone stuck at the boot logo before adb comes up usually means a kernel, vendor_boot or partition problem. Read the pstore console log after the reboot. A phone that reaches the boot animation and loops is usually a system service crashing, which shows up in logcat.</span><span lang="id">Ponsel yang macet di logo boot sebelum adb aktif biasanya berarti masalah kernel, vendor_boot, atau partisi. Baca log konsol pstore setelah reboot. Ponsel yang sampai ke animasi boot lalu berulang biasanya karena layanan sistem crash, yang terlihat di logcat.</span></p>
+      <h3><span lang="en">Failures you are likely to meet</span><span lang="id">Kegagalan yang mungkin kamu temui</span></h3>
+      <div class="scroll"><table>
+        <thead><tr><th><span lang="en">Symptom</span><span lang="id">Gejala</span></th><th><span lang="en">Likely cause</span><span lang="id">Kemungkinan penyebab</span></th><th><span lang="en">Fix</span><span lang="id">Solusi</span></th></tr></thead>
+        <tbody>
+          <tr><td><span lang="en">Soong stops with a module defined twice</span><span lang="id">Soong berhenti karena sebuah modul didefinisikan dua kali</span></td><td><span lang="en">Two repositories both ship the same module, for example a compatibility library present in <code>hardware/lineage/compat</code> and in a prebuilts directory.</span><span lang="id">Dua repositori sama-sama membawa modul yang sama, misalnya library kompatibilitas yang ada di <code>hardware/lineage/compat</code> dan di direktori prebuilts.</span></td><td><span lang="en">Remove one repository from the manifest, or delete the duplicate <code>Android.bp</code>.</span><span lang="id">Hapus salah satu repositori dari manifest, atau hapus <code>Android.bp</code> yang duplikat.</span></td></tr>
+          <tr><td><span lang="en">Build fails on an unknown package such as a camera or settings overlay</span><span lang="id">Build gagal karena paket tidak dikenal, misalnya overlay kamera atau pengaturan</span></td><td><span lang="en"><code>lineage_topaz.mk</code> lists an RRO module that has no <code>Android.bp</code> or <code>Android.mk</code> in the tree.</span><span lang="id"><code>lineage_topaz.mk</code> mencantumkan modul RRO yang tidak punya <code>Android.bp</code> atau <code>Android.mk</code> di tree.</span></td><td><span lang="en">Add the overlay module, or take the name out of <code>PRODUCT_PACKAGES</code>.</span><span lang="id">Tambahkan modul overlay, atau keluarkan namanya dari <code>PRODUCT_PACKAGES</code>.</span></td></tr>
+          <tr><td><span lang="en">Wi-Fi HAL restarts in a loop, CFI abort in logcat</span><span lang="id">HAL Wi-Fi restart terus-menerus, abort CFI di logcat</span></td><td><span lang="en">Blobs from mixed firmware generations disagree about an interface.</span><span lang="id">Blob dari generasi firmware yang berbeda tidak sepakat soal sebuah interface.</span></td><td><span lang="en">Re-extract the whole Wi-Fi stack from one stock build.</span><span lang="id">Ekstrak ulang seluruh stack Wi-Fi dari satu build stock.</span></td></tr>
+          <tr><td><span lang="en">CIL compile error for a duplicated <code>genfscon</code> line</span><span lang="id">Error kompilasi CIL karena baris <code>genfscon</code> duplikat</span></td><td><span lang="en">A platform version bump left the same sysfs rule in both the platform and vendor policy.</span><span lang="id">Kenaikan versi platform meninggalkan aturan sysfs yang sama di policy platform dan policy vendor.</span></td><td><span lang="en">Search both for the line and keep one copy. The vendor copy is usually the one to remove.</span><span lang="id">Cari barisnya di keduanya dan sisakan satu salinan. Biasanya salinan vendor yang dibuang.</span></td></tr>
+          <tr><td><span lang="en">Boot loop after a kernel change</span><span lang="id">Boot loop setelah mengubah kernel</span></td><td><span lang="en">Vendor modules built against a different kernel.</span><span lang="id">Modul vendor dibangun terhadap kernel yang berbeda.</span></td><td><span lang="en">Rebuild every module from the same checkout and config as the kernel.</span><span lang="id">Bangun ulang setiap modul dari checkout dan config yang sama dengan kernel.</span></td></tr>
+          <tr><td><span lang="en">Random GPU or thermal behaviour</span><span lang="id">Perilaku GPU atau thermal acak</span></td><td><span lang="en">Two power HALs running at once.</span><span lang="id">Dua power HAL berjalan bersamaan.</span></td><td><span lang="en">Keep one PowerHAL (see the device tree section).</span><span lang="id">Pakai satu PowerHAL saja (lihat bagian device tree).</span></td></tr>
+          <tr><td><span lang="en">Service denied at boot, <code>avc: denied</code> in logcat</span><span lang="id">Layanan ditolak saat boot, <code>avc: denied</code> di logcat</span></td><td><span lang="en">Missing SELinux rule or file context.</span><span lang="id">Aturan SELinux atau file context hilang.</span></td><td><span lang="en">Boot permissive once to collect denials, then write real rules. Do not ship permissive.</span><span lang="id">Boot dalam mode permissive sekali untuk mengumpulkan denial, lalu tulis aturan yang benar. Jangan rilis dengan permissive.</span></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="release">
+      <h2><span lang="en">Release builds and signing</span><span lang="id">Build rilis dan signing</span></h2>
+      <p><span lang="en">Test builds are signed with the public test keys. Before you hand a build to anyone else, generate your own keys, keep them private and out of git, and sign every release with them.</span><span lang="id">Build uji ditandatangani dengan test key publik. Sebelum menyerahkan build ke orang lain, buat key sendiri, jaga kerahasiaannya dan jangan masukkan ke git, lalu tanda tangani setiap rilis dengan key itu.</span></p>
+      <p><span lang="en">If your ROM source includes <code>vendor/lineage-priv/keys/keys.sh</code>, run it once to generate the key set, as in the short route. The steps below are the manual route, for sources that do not ship that script.</span><span lang="id">Jika source ROM-mu menyertakan <code>vendor/lineage-priv/keys/keys.sh</code>, jalankan sekali untuk membuat set key, seperti pada jalur singkat. Langkah di bawah adalah cara manual, untuk source yang tidak menyertakan script itu.</span></p>
+      <ol>
+        <li><span lang="en">Create the platform, shared, media and releasekey keys with the <code>make_key</code> script from <code>development/tools</code>.</span><span lang="id">Buat key platform, shared, media, dan releasekey dengan script <code>make_key</code> dari <code>development/tools</code>.</span></li>
+        <li><span lang="en">Create an AVB key and point <code>BOARD_AVB_KEY_PATH</code> at it so <code>avbtool</code> signs the boot chain.</span><span lang="id">Buat key AVB dan arahkan <code>BOARD_AVB_KEY_PATH</code> ke sana agar <code>avbtool</code> menandatangani rantai boot.</span></li>
+        <li><span lang="en">Build the target-files package, re-sign it with <code>sign_target_files_apks</code>, then produce the OTA with <code>ota_from_target_files</code>.</span><span lang="id">Build paket target-files, tanda tangani ulang dengan <code>sign_target_files_apks</code>, lalu hasilkan OTA dengan <code>ota_from_target_files</code>.</span></li>
+      </ol>
+      <p><span lang="en">If you flash an AVB-signed build with a custom key, the bootloader must trust that key. Test the whole chain on one phone before you publish.</span><span lang="id">Jika kamu mem-flash build bertanda tangan AVB dengan key kustom, bootloader harus mempercayai key itu. Uji seluruh rantai di satu ponsel sebelum dipublikasikan.</span></p>
+    </section>
+
+    <section id="checklist">
+      <h2><span lang="en">Checklist</span><span lang="id">Daftar periksa</span></h2>
+      <p><span lang="en">Tick items as you finish them. Ticks stay in this browser.</span><span lang="id">Centang item saat selesai. Centang tersimpan di browser ini.</span></p>
+      <ul class="checks" id="checks">
+        <li><label><input type="checkbox" data-k="a"><span><span lang="en">Stock fastboot ROM downloaded and stored</span><span lang="id">Stock fastboot ROM sudah diunduh dan disimpan</span></span></label></li>
+        <li><label><input type="checkbox" data-k="b"><span><span lang="en">Bootloader already unlocked and data backed up</span><span lang="id">Bootloader sudah di-unlock dan data sudah dicadangkan</span></span></label></li>
+        <li><label><input type="checkbox" data-k="c"><span><span lang="en">Variant confirmed (topaz or tapas)</span><span lang="id">Varian sudah dipastikan (topaz atau tapas)</span></span></label></li>
+        <li><label><input type="checkbox" data-k="d"><span><span lang="en">Build server rented, logged in, git name and Google password set</span><span lang="id">Server build sudah disewa, sudah login, nama git dan password Google sudah diatur</span></span></label></li>
+        <li><label><input type="checkbox" data-k="e"><span><span lang="en">Sources synced with local manifest</span><span lang="id">Source sudah disinkronkan dengan local manifest</span></span></label></li>
+        <li><label><input type="checkbox" data-k="f"><span><span lang="en">Vendor blobs extracted from a matching stock build</span><span lang="id">Vendor blob sudah diekstrak dari build stock yang cocok</span></span></label></li>
+        <li><label><input type="checkbox" data-k="g"><span><span lang="en">Kernel and modules built from one checkout, or prebuilt pair confirmed</span><span lang="id">Kernel dan modul dibangun dari satu checkout, atau pasangan prebuilt sudah dipastikan</span></span></label></li>
+        <li><label><input type="checkbox" data-k="h"><span><span lang="en">First full build finished</span><span lang="id">Build penuh pertama selesai</span></span></label></li>
+        <li><label><input type="checkbox" data-k="i"><span><span lang="en">Booted with <code>fastboot boot</code> before flashing</span><span lang="id">Sudah boot dengan <code>fastboot boot</code> sebelum flashing</span></span></label></li>
+        <li><label><input type="checkbox" data-k="j"><span><span lang="en">Flashed and booted to the setup screen</span><span lang="id">Sudah di-flash dan berhasil boot ke layar setup</span></span></label></li>
+        <li><label><input type="checkbox" data-k="k"><span><span lang="en">Wi-Fi, mobile data, camera, audio and sensors tested</span><span lang="id">Wi-Fi, data seluler, kamera, audio, dan sensor sudah diuji</span></span></label></li>
+        <li><label><input type="checkbox" data-k="l"><span><span lang="en">Release keys generated and builds signed</span><span lang="id">Key rilis sudah dibuat dan build sudah ditandatangani</span></span></label></li>
+      </ul>
+      <button class="btn" id="reset" type="button"><span lang="en">Clear all ticks</span><span lang="id">Hapus semua centang</span></button>
+    </section>
+
+    <p class="foot"><span lang="en">Commands change between Android branches. Treat the LineageOS wiki page for your device as the final word on install steps, and check your branch name before you copy anything.</span><span lang="id">Perintah berubah antar branch Android. Anggap halaman wiki LineageOS untuk perangkatmu sebagai acuan terakhir langkah instalasi, dan periksa nama branch-mu sebelum menyalin apa pun.</span></p>
+  </main>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var L = {
+    en: { copy: "Copy", copied: "Copied", selected: "Selected", done: "done" },
+    id: { copy: "Salin", copied: "Tersalin", selected: "Terpilih", done: "selesai" }
+  };
+  var lang = "en";
+
+  function store(op, k, v) {
+    try { return op === "get" ? localStorage.getItem(k) : localStorage.setItem(k, v); } catch (e) { return null; }
+  }
+
+  // Theme toggle
+  var saved = store("get", "topaz-guide-theme");
+  if (saved === "light" || saved === "dark") root.setAttribute("data-theme", saved);
+  document.getElementById("theme").addEventListener("click", function () {
+    var cur = root.getAttribute("data-theme");
+    if (!cur) cur = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    var next = cur === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    store("set", "topaz-guide-theme", next);
+  });
+
+  // Copy buttons
+  var copyBtns = Array.prototype.slice.call(document.querySelectorAll(".copy"));
+  copyBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var code = btn.closest(".code").querySelector("code");
+      var text = code.textContent;
+      function done(label) { btn.textContent = label; setTimeout(function () { btn.textContent = L[lang].copy; }, 1400); }
+      function fallback() {
+        var r = document.createRange();
+        r.selectNodeContents(code);
+        var s = window.getSelection();
+        s.removeAllRanges();
+        s.addRange(r);
+        done(L[lang].selected);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(L[lang].copied); }, fallback);
+      } else {
+        fallback();
+      }
+    });
+  });
+
+  // Active section in the nav
+  var links = Array.prototype.slice.call(document.querySelectorAll("#nav a"));
+  var secs = links.map(function (a) { return document.querySelector(a.getAttribute("href")); });
+  function spy() {
+    var y = window.scrollY + 140, idx = 0;
+    secs.forEach(function (s, i) { if (s && s.offsetTop <= y) idx = i; });
+    links.forEach(function (a, i) { a.classList.toggle("on", i === idx); });
+  }
+  window.addEventListener("scroll", spy, { passive: true });
+  window.addEventListener("resize", spy);
+
+  // Checklist
+  var boxes = Array.prototype.slice.call(document.querySelectorAll("#checks input"));
+  var prog = document.getElementById("progress");
+  function count() {
+    var n = boxes.filter(function (b) { return b.checked; }).length;
+    prog.textContent = n + " / " + boxes.length + " " + L[lang].done;
+  }
+  boxes.forEach(function (b) {
+    b.checked = store("get", "topaz-guide-" + b.dataset.k) === "1";
+    b.addEventListener("change", function () {
+      store("set", "topaz-guide-" + b.dataset.k, b.checked ? "1" : "0");
+      count();
+    });
+  });
+  document.getElementById("reset").addEventListener("click", function () {
+    boxes.forEach(function (b) { b.checked = false; store("set", "topaz-guide-" + b.dataset.k, "0"); });
+    count();
+  });
+
+  // Language
+  function applyLang() {
+    root.setAttribute("data-lang", lang);
+    root.setAttribute("lang", lang);
+    copyBtns.forEach(function (b) { b.textContent = L[lang].copy; });
+    count();
+    spy();
+  }
+  var savedLang = store("get", "topaz-guide-lang");
+  if (savedLang === "id" || savedLang === "en") {
+    lang = savedLang;
+  } else if (String(navigator.language || "").toLowerCase().indexOf("id") === 0) {
+    lang = "id";
+  }
+  document.getElementById("lang").addEventListener("click", function () {
+    lang = lang === "en" ? "id" : "en";
+    store("set", "topaz-guide-lang", lang);
+    applyLang();
+  });
+  applyLang();
+})();
+</script>
+
+</body></html>
